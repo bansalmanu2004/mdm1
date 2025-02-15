@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDM1 Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        input { width: 100%; padding: 5px; box-sizing: border-box; }
+        button { margin-top: 20px; padding: 10px 15px; background: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <h2>MDM1 Calculator</h2>
+    <table id="mdmTable">
+        <tr><th>Field</th><th>Input</th></tr>
+        <tr><td>School Name</td><td><input type="text" id="schoolName"></td></tr>
+        <tr><td>School UDISE Code</td><td><input type="text" id="udiseCode"></td></tr>
+        <tr><td>Number of Students</td><td><input type="number" id="numStudents"></td></tr>
+        <tr><td>Students Served MDM</td><td><input type="number" id="studentsServed"></td></tr>
+        <tr><td>Opening Stock of Wheat</td><td><input type="number" id="openWheat" oninput="calculateStocks()"></td></tr>
+        <tr><td>New Stock of Wheat</td><td><input type="number" id="newWheat" oninput="calculateStocks()"></td></tr>
+        <tr><td>Wheat Consumed</td><td><input type="number" id="wheatConsumed" oninput="calculateStocks()"></td></tr>
+        <tr><td>Wheat Stock Remaining</td><td><input type="number" id="wheatRemaining" readonly></td></tr>
+        <tr><td>Opening Stock of Rice</td><td><input type="number" id="openRice" oninput="calculateStocks()"></td></tr>
+        <tr><td>New Stock of Rice</td><td><input type="number" id="newRice" oninput="calculateStocks()"></td></tr>
+        <tr><td>Rice Consumed</td><td><input type="number" id="riceConsumed" oninput="calculateStocks()"></td></tr>
+        <tr><td>Rice Stock Remaining</td><td><input type="number" id="riceRemaining" readonly></td></tr>
+        <tr><td>Opening Amount Balance</td><td><input type="number" id="openBalance" oninput="calculateBalance()"></td></tr>
+        <tr><td>Amount Received</td><td><input type="number" id="amountReceived" oninput="calculateBalance()"></td></tr>
+        <tr><td>Cooking Cost Utilized</td><td><input type="number" id="costUtilized" oninput="calculateBalance()"></td></tr>
+        <tr><td>Cooking Cost Balance</td><td><input type="number" id="costBalance" readonly></td></tr>
+    </table>
+
+    <button onclick="downloadPDF()">Download as PDF</button>
+
+    <script>
+        function calculateStocks() {
+            let openWheat = parseFloat(document.getElementById('openWheat').value) || 0;
+            let newWheat = parseFloat(document.getElementById('newWheat').value) || 0;
+            let wheatConsumed = parseFloat(document.getElementById('wheatConsumed').value) || 0;
+            document.getElementById('wheatRemaining').value = (openWheat + newWheat - wheatConsumed).toFixed(2);
+
+            let openRice = parseFloat(document.getElementById('openRice').value) || 0;
+            let newRice = parseFloat(document.getElementById('newRice').value) || 0;
+            let riceConsumed = parseFloat(document.getElementById('riceConsumed').value) || 0;
+            document.getElementById('riceRemaining').value = (openRice + newRice - riceConsumed).toFixed(2);
+        }
+
+        function calculateBalance() {
+            let openBalance = parseFloat(document.getElementById('openBalance').value) || 0;
+            let amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+            let costUtilized = parseFloat(document.getElementById('costUtilized').value) || 0;
+            document.getElementById('costBalance').value = (openBalance + amountReceived - costUtilized).toFixed(2);
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            let doc = new jsPDF();
+
+            doc.setFontSize(14);
+            doc.text("MDM1 Calculator Report", 14, 15);
+
+            let data = [];
+            let rows = document.querySelectorAll("#mdmTable tr");
+            
+            rows.forEach((row, index) => {
+                let cols = row.querySelectorAll("td, th");
+                let rowData = [];
+                cols.forEach((col, i) => {
+                    if (i === 1 && index !== 0) {
+                        rowData.push(col.querySelector("input") ? col.querySelector("input").value : col.innerText);
+                    } else {
+                        rowData.push(col.innerText);
+                    }
+                });
+                data.push(rowData);
+            });
+
+            doc.autoTable({
+                head: [data[0]],
+                body: data.slice(1),
+                startY: 25,
+                theme: 'striped',
+                styles: { fontSize: 10 },
+                columnStyles: { 0: { cellWidth: 90 }, 1: { cellWidth: 90 } }
+            });
+
+            doc.save("MDM1_Report.pdf");
+        }
+    </script>
+</body>
+</html>
